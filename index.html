@@ -18,6 +18,8 @@
       --radius: 22px;
       --focus: rgba(125, 139, 122, 0.28);
       --max-width: 680px;
+      --modal-backdrop: rgba(18, 22, 18, 0.34);
+      --danger-soft: rgba(120, 90, 90, 0.12);
     }
 
     @media (prefers-color-scheme: dark) {
@@ -32,6 +34,8 @@
         --button-bg: rgba(31, 35, 31, 0.94);
         --shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
         --focus: rgba(155, 173, 152, 0.28);
+        --modal-backdrop: rgba(0, 0, 0, 0.45);
+        --danger-soft: rgba(150, 110, 110, 0.14);
       }
     }
 
@@ -80,6 +84,7 @@
       border-radius: 28px;
       box-shadow: var(--shadow);
       overflow: hidden;
+      position: relative;
     }
 
     .topbar {
@@ -206,6 +211,16 @@
       border-color: transparent;
     }
 
+    .button.soft-danger {
+      background: var(--danger-soft);
+      border-color: transparent;
+    }
+
+    .button.low-emphasis {
+      background: transparent;
+      color: var(--muted);
+    }
+
     .button:disabled {
       opacity: 0.45;
       cursor: default;
@@ -283,6 +298,20 @@
       gap: 10px;
     }
 
+    .reset-row {
+      margin-top: 12px;
+      padding-top: 22px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: center;
+    }
+
+    .reset-row .button {
+      min-height: 44px;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+    }
+
     .status {
       min-height: 22px;
       text-align: center;
@@ -299,6 +328,46 @@
       border: 1px solid rgba(180, 70, 70, 0.35);
       background: rgba(180, 70, 70, 0.08);
       font: 400 0.98rem/1.6 Arial, Helvetica, sans-serif;
+    }
+
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: var(--modal-backdrop);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 20;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 420px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 22px 18px 18px;
+    }
+
+    .modal-title {
+      margin: 0 0 10px;
+      font-size: 1.3rem;
+      line-height: 1.3;
+      font-weight: 500;
+    }
+
+    .modal-body {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font: 400 0.98rem/1.6 Arial, Helvetica, sans-serif;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
     }
 
     .hidden {
@@ -331,6 +400,11 @@
       .summary,
       .nav {
         max-width: 100%;
+      }
+
+      .modal {
+        max-width: 100%;
+        border-radius: 22px;
       }
     }
   </style>
@@ -367,9 +441,16 @@
 
           <div class="summary-actions">
             <button id="shareButton" class="button primary" type="button">Share by text</button>
+
             <div class="button-row">
               <button id="copyButton" class="button" type="button">Copy all</button>
               <button id="editButton" class="button secondary" type="button">Edit answers</button>
+            </div>
+
+            <div class="reset-row">
+              <button id="startNewButton" class="button low-emphasis" type="button">
+                Start a new review
+              </button>
             </div>
           </div>
         </div>
@@ -381,6 +462,19 @@
           <button id="nextButton" class="button primary" type="button">Next</button>
         </div>
       </footer>
+
+      <div id="resetModal" class="modal-backdrop hidden" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="resetModalTitle" aria-describedby="resetModalBody">
+          <h2 id="resetModalTitle" class="modal-title">Start a new review?</h2>
+          <p id="resetModalBody" class="modal-body">
+            This will clear this review and return you to the first question.
+          </p>
+          <div class="modal-actions">
+            <button id="cancelResetButton" class="button secondary" type="button">Cancel</button>
+            <button id="confirmResetButton" class="button soft-danger" type="button">Clear and start new</button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <div id="status" class="status" aria-live="polite"></div>
@@ -390,7 +484,7 @@
     (function () {
       "use strict";
 
-      var STORAGE_KEY = "nightly-review-mobile-v3";
+      var STORAGE_KEY = "nightly-review-mobile-v4";
 
       var questions = [
         { id: "q1", text: "Was I resentful?" },
@@ -421,7 +515,13 @@
       var shareButtonEl = document.getElementById("shareButton");
       var copyButtonEl = document.getElementById("copyButton");
       var editButtonEl = document.getElementById("editButton");
+      var startNewButtonEl = document.getElementById("startNewButton");
 
+      var resetModalEl = document.getElementById("resetModal");
+      var cancelResetButtonEl = document.getElementById("cancelResetButton");
+      var confirmResetButtonEl = document.getElementById("confirmResetButton");
+
+      var lastFocusedEl = null;
       var state = loadState();
 
       function getTodayLocalISO() {
@@ -455,13 +555,12 @@
           if (!raw) return createInitialState();
 
           var parsed = JSON.parse(raw);
-          var base = createInitialState();
 
           return {
-            date: parsed.date || base.date,
+            date: parsed.date || getTodayLocalISO(),
             currentQuestion: typeof parsed.currentQuestion === "number" ? parsed.currentQuestion : 0,
             mode: parsed.mode === "summary" ? "summary" : "question",
-            lastSavedAt: parsed.lastSavedAt || base.lastSavedAt,
+            lastSavedAt: parsed.lastSavedAt || new Date().toISOString(),
             answers: {
               q1: parsed.answers && typeof parsed.answers.q1 === "string" ? parsed.answers.q1 : "",
               q2: parsed.answers && typeof parsed.answers.q2 === "string" ? parsed.answers.q2 : "",
@@ -622,6 +721,30 @@
         return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
       }
 
+      function openResetModal() {
+        lastFocusedEl = document.activeElement;
+        resetModalEl.classList.remove("hidden");
+        resetModalEl.setAttribute("aria-hidden", "false");
+        confirmResetButtonEl.focus();
+      }
+
+      function closeResetModal() {
+        resetModalEl.classList.add("hidden");
+        resetModalEl.setAttribute("aria-hidden", "true");
+        if (lastFocusedEl && typeof lastFocusedEl.focus === "function") {
+          lastFocusedEl.focus();
+        }
+      }
+
+      function hardResetReview() {
+        state = createInitialState();
+        saveState();
+        closeResetModal();
+        render();
+        answerInputEl.focus();
+        setStatus("New review started.");
+      }
+
       answerInputEl.addEventListener("input", function () {
         var q = getCurrentQuestion();
         state.answers[q.id] = answerInputEl.value;
@@ -631,6 +754,13 @@
 
       answerInputEl.addEventListener("blur", function () {
         persistCurrentAnswer();
+      });
+
+      answerInputEl.addEventListener("keydown", function (event) {
+        if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+          event.preventDefault();
+          nextButtonEl.click();
+        }
       });
 
       backButtonEl.addEventListener("click", function () {
@@ -660,6 +790,7 @@
         state.currentQuestion = 0;
         saveState();
         render();
+        answerInputEl.focus();
       });
 
       copyButtonEl.addEventListener("click", function () {
@@ -699,6 +830,30 @@
           });
         } else {
           fallbackCopy(text);
+        }
+      });
+
+      startNewButtonEl.addEventListener("click", function () {
+        openResetModal();
+      });
+
+      cancelResetButtonEl.addEventListener("click", function () {
+        closeResetModal();
+      });
+
+      confirmResetButtonEl.addEventListener("click", function () {
+        hardResetReview();
+      });
+
+      resetModalEl.addEventListener("click", function (event) {
+        if (event.target === resetModalEl) {
+          closeResetModal();
+        }
+      });
+
+      document.addEventListener("keydown", function (event) {
+        if (!resetModalEl.classList.contains("hidden") && event.key === "Escape") {
+          closeResetModal();
         }
       });
 
