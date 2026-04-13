@@ -2,21 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Nightly Review</title>
   <style>
     :root {
       --bg: #f4efe6;
-      --panel: rgba(255, 252, 246, 0.72);
+      --panel: rgba(255, 252, 246, 0.76);
       --text: #2f342f;
       --muted: #6f766f;
       --line: rgba(47, 52, 47, 0.12);
       --accent: #7d8b7a;
-      --accent-soft: rgba(125, 139, 122, 0.12);
-      --button-bg: rgba(255, 252, 246, 0.88);
+      --accent-soft: rgba(125, 139, 122, 0.14);
+      --button-bg: rgba(255, 252, 246, 0.9);
       --shadow: 0 10px 30px rgba(60, 64, 52, 0.08);
       --radius: 22px;
       --focus: rgba(125, 139, 122, 0.28);
@@ -26,14 +23,14 @@
     @media (prefers-color-scheme: dark) {
       :root {
         --bg: #181b18;
-        --panel: rgba(31, 35, 31, 0.8);
+        --panel: rgba(31, 35, 31, 0.84);
         --text: #ece7dc;
         --muted: #a4aa9f;
         --line: rgba(236, 231, 220, 0.12);
         --accent: #9bad98;
         --accent-soft: rgba(155, 173, 152, 0.16);
-        --button-bg: rgba(31, 35, 31, 0.92);
-        --shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+        --button-bg: rgba(31, 35, 31, 0.94);
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
         --focus: rgba(155, 173, 152, 0.28);
       }
     }
@@ -42,8 +39,7 @@
       box-sizing: border-box;
     }
 
-    html,
-    body {
+    html, body {
       margin: 0;
       padding: 0;
       min-height: 100%;
@@ -62,7 +58,7 @@
         16px
         calc(env(safe-area-inset-bottom, 0px) + 16px);
       background:
-        radial-gradient(circle at top, rgba(255,255,255,0.22), transparent 35%),
+        radial-gradient(circle at top, rgba(255,255,255,0.18), transparent 35%),
         linear-gradient(to bottom, var(--bg), var(--bg));
     }
 
@@ -80,7 +76,6 @@
       display: flex;
       flex-direction: column;
       background: var(--panel);
-      backdrop-filter: blur(10px);
       border: 1px solid var(--line);
       border-radius: 28px;
       box-shadow: var(--shadow);
@@ -112,10 +107,14 @@
       padding: 10px 20px 20px;
     }
 
-    .question-wrap {
+    .question-wrap,
+    .summary {
       width: 100%;
       max-width: 560px;
       margin: 0 auto;
+    }
+
+    .question-wrap {
       display: flex;
       flex-direction: column;
       gap: 22px;
@@ -123,10 +122,10 @@
 
     .question {
       margin: 0;
-      font-size: clamp(1.65rem, 4.6vw, 2.35rem);
+      font-size: clamp(1.7rem, 4.8vw, 2.35rem);
       line-height: 1.24;
       font-weight: 500;
-      text-wrap: balance;
+      color: var(--text);
     }
 
     .answer-label {
@@ -142,16 +141,14 @@
     .textarea {
       width: 100%;
       min-height: 210px;
-      max-height: 45vh;
       resize: none;
       padding: 18px 18px 22px;
       border-radius: var(--radius);
       border: 1px solid var(--line);
-      background: rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.16);
       color: var(--text);
       font: 400 1.02rem/1.6 Arial, Helvetica, sans-serif;
       outline: none;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
       overflow-y: auto;
     }
 
@@ -161,9 +158,7 @@
 
     .textarea:focus {
       border-color: transparent;
-      box-shadow:
-        0 0 0 4px var(--focus),
-        inset 0 1px 0 rgba(255,255,255,0.06);
+      box-shadow: 0 0 0 4px var(--focus);
     }
 
     .footer {
@@ -172,7 +167,7 @@
         12px
         16px
         calc(env(safe-area-inset-bottom, 0px) + 12px);
-      background: rgba(255, 252, 246, 0.16);
+      background: rgba(255, 252, 246, 0.14);
     }
 
     @media (prefers-color-scheme: dark) {
@@ -200,17 +195,6 @@
       font: 600 0.98rem/1 Arial, Helvetica, sans-serif;
       min-height: 52px;
       cursor: pointer;
-      transition: transform 120ms ease, background 120ms ease, box-shadow 120ms ease;
-      box-shadow: 0 1px 0 rgba(255,255,255,0.1);
-    }
-
-    .button:active {
-      transform: translateY(1px);
-    }
-
-    .button:focus-visible {
-      outline: none;
-      box-shadow: 0 0 0 4px var(--focus);
     }
 
     .button.secondary {
@@ -225,13 +209,14 @@
     .button:disabled {
       opacity: 0.45;
       cursor: default;
-      transform: none;
+    }
+
+    .button:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 4px var(--focus);
     }
 
     .summary {
-      width: 100%;
-      max-width: 560px;
-      margin: 0 auto;
       display: flex;
       flex-direction: column;
       gap: 22px;
@@ -274,7 +259,6 @@
 
     .summary-answer {
       margin: 0;
-      color: var(--text);
       white-space: pre-wrap;
       word-wrap: break-word;
       font: 400 1rem/1.7 Arial, Helvetica, sans-serif;
@@ -293,7 +277,7 @@
       margin-top: 8px;
     }
 
-    .summary-actions .button-row {
+    .button-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
@@ -305,6 +289,16 @@
       color: var(--muted);
       font: 400 0.92rem/1.4 Arial, Helvetica, sans-serif;
       padding: 0 6px;
+    }
+
+    .error-box {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(180, 70, 70, 0.35);
+      background: rgba(180, 70, 70, 0.08);
+      font: 400 0.98rem/1.6 Arial, Helvetica, sans-serif;
     }
 
     .hidden {
@@ -339,12 +333,6 @@
         max-width: 100%;
       }
     }
-
-    @media (prefers-reduced-motion: reduce) {
-      .button {
-        transition: none;
-      }
-    }
   </style>
 </head>
 <body>
@@ -357,6 +345,7 @@
       <div class="view" id="questionView">
         <div class="question-wrap">
           <h1 id="questionText" class="question"></h1>
+          <div id="errorBox" class="error-box hidden"></div>
 
           <label id="answerLabel" class="answer-label" for="answerInput"></label>
           <textarea
@@ -377,10 +366,7 @@
           <div id="summaryItems"></div>
 
           <div class="summary-actions">
-            <button id="shareButton" class="button primary" type="button">
-              Share by text
-            </button>
-
+            <button id="shareButton" class="button primary" type="button">Share by text</button>
             <div class="button-row">
               <button id="copyButton" class="button" type="button">Copy all</button>
               <button id="editButton" class="button secondary" type="button">Edit answers</button>
@@ -402,46 +388,54 @@
 
   <script>
     (function () {
-      const STORAGE_KEY = "nightly-review-mobile-v2";
+      "use strict";
 
-      const questions = [
+      var STORAGE_KEY = "nightly-review-mobile-v3";
+
+      var questions = [
         { id: "q1", text: "Was I resentful?" },
         { id: "q2", text: "Was I selfish?" },
         { id: "q3", text: "Was I dishonest?" },
         { id: "q4", text: "Was I afraid?" },
         { id: "q5", text: "Do I owe an apology?" },
-        {
-          id: "q6",
-          text: "Have I kept something to myself which should be discussed with another person at once?"
-        },
+        { id: "q6", text: "Have I kept something to myself which should be discussed with another person at once?" },
         { id: "q7", text: "Was I kind and loving toward all?" },
         { id: "q8", text: "What could I have done better?" }
       ];
 
-      const progressEl = document.getElementById("progress");
-      const questionTextEl = document.getElementById("questionText");
-      const answerLabelEl = document.getElementById("answerLabel");
-      const answerInputEl = document.getElementById("answerInput");
-      const statusEl = document.getElementById("status");
+      var progressEl = document.getElementById("progress");
+      var questionTextEl = document.getElementById("questionText");
+      var answerLabelEl = document.getElementById("answerLabel");
+      var answerInputEl = document.getElementById("answerInput");
+      var statusEl = document.getElementById("status");
+      var errorBoxEl = document.getElementById("errorBox");
 
-      const questionViewEl = document.getElementById("questionView");
-      const summaryViewEl = document.getElementById("summaryView");
-      const summaryItemsEl = document.getElementById("summaryItems");
-      const summaryDateEl = document.getElementById("summaryDate");
-      const footerNavEl = document.getElementById("footerNav");
+      var questionViewEl = document.getElementById("questionView");
+      var summaryViewEl = document.getElementById("summaryView");
+      var summaryItemsEl = document.getElementById("summaryItems");
+      var summaryDateEl = document.getElementById("summaryDate");
+      var footerNavEl = document.getElementById("footerNav");
 
-      const backButtonEl = document.getElementById("backButton");
-      const nextButtonEl = document.getElementById("nextButton");
-      const shareButtonEl = document.getElementById("shareButton");
-      const copyButtonEl = document.getElementById("copyButton");
-      const editButtonEl = document.getElementById("editButton");
+      var backButtonEl = document.getElementById("backButton");
+      var nextButtonEl = document.getElementById("nextButton");
+      var shareButtonEl = document.getElementById("shareButton");
+      var copyButtonEl = document.getElementById("copyButton");
+      var editButtonEl = document.getElementById("editButton");
 
-      let state = loadState();
+      var state = loadState();
+
+      function getTodayLocalISO() {
+        var now = new Date();
+        var offsetMs = now.getTimezoneOffset() * 60000;
+        return new Date(now.getTime() - offsetMs).toISOString().slice(0, 10);
+      }
 
       function createInitialState() {
         return {
           date: getTodayLocalISO(),
           currentQuestion: 0,
+          mode: "question",
+          lastSavedAt: new Date().toISOString(),
           answers: {
             q1: "",
             q2: "",
@@ -451,45 +445,35 @@
             q6: "",
             q7: "",
             q8: ""
-          },
-          lastSavedAt: new Date().toISOString(),
-          mode: "question"
+          }
         };
-      }
-
-      function getTodayLocalISO() {
-        const now = new Date();
-        const offsetMs = now.getTimezoneOffset() * 60 * 1000;
-        return new Date(now.getTime() - offsetMs).toISOString().slice(0, 10);
       }
 
       function loadState() {
         try {
-          const raw = localStorage.getItem(STORAGE_KEY);
+          var raw = localStorage.getItem(STORAGE_KEY);
           if (!raw) return createInitialState();
 
-          const parsed = JSON.parse(raw);
-          const base = createInitialState();
+          var parsed = JSON.parse(raw);
+          var base = createInitialState();
 
-          const merged = {
-            ...base,
-            ...parsed,
+          return {
+            date: parsed.date || base.date,
+            currentQuestion: typeof parsed.currentQuestion === "number" ? parsed.currentQuestion : 0,
+            mode: parsed.mode === "summary" ? "summary" : "question",
+            lastSavedAt: parsed.lastSavedAt || base.lastSavedAt,
             answers: {
-              ...base.answers,
-              ...(parsed.answers || {})
+              q1: parsed.answers && typeof parsed.answers.q1 === "string" ? parsed.answers.q1 : "",
+              q2: parsed.answers && typeof parsed.answers.q2 === "string" ? parsed.answers.q2 : "",
+              q3: parsed.answers && typeof parsed.answers.q3 === "string" ? parsed.answers.q3 : "",
+              q4: parsed.answers && typeof parsed.answers.q4 === "string" ? parsed.answers.q4 : "",
+              q5: parsed.answers && typeof parsed.answers.q5 === "string" ? parsed.answers.q5 : "",
+              q6: parsed.answers && typeof parsed.answers.q6 === "string" ? parsed.answers.q6 : "",
+              q7: parsed.answers && typeof parsed.answers.q7 === "string" ? parsed.answers.q7 : "",
+              q8: parsed.answers && typeof parsed.answers.q8 === "string" ? parsed.answers.q8 : ""
             }
           };
-
-          if (!questions[merged.currentQuestion] && merged.mode !== "summary") {
-            merged.currentQuestion = 0;
-          }
-
-          if (!merged.date) {
-            merged.date = getTodayLocalISO();
-          }
-
-          return merged;
-        } catch (error) {
+        } catch (e) {
           return createInitialState();
         }
       }
@@ -500,12 +484,10 @@
       }
 
       function setStatus(message) {
-        statusEl.textContent = message;
-        if (setStatus._timer) {
-          clearTimeout(setStatus._timer);
-        }
+        statusEl.textContent = message || "";
+        if (setStatus._timer) clearTimeout(setStatus._timer);
         if (message) {
-          setStatus._timer = setTimeout(() => {
+          setStatus._timer = setTimeout(function () {
             statusEl.textContent = "";
           }, 1800);
         }
@@ -513,14 +495,15 @@
 
       function autoResizeTextarea() {
         answerInputEl.style.height = "auto";
-        answerInputEl.style.height =
-          Math.min(answerInputEl.scrollHeight, window.innerHeight * 0.45) + "px";
+        var nextHeight = answerInputEl.scrollHeight;
+        var maxHeight = Math.floor(window.innerHeight * 0.45);
+        answerInputEl.style.height = Math.min(nextHeight, maxHeight) + "px";
       }
 
-      function formattedDateString(dateISO) {
-        const [year, month, day] = dateISO.split("-").map(Number);
-        const date = new Date(year, month - 1, day);
-        return date.toLocaleDateString(undefined, {
+      function formatLongDate(dateISO) {
+        var parts = dateISO.split("-");
+        var d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        return d.toLocaleDateString(undefined, {
           weekday: "long",
           month: "long",
           day: "numeric",
@@ -528,67 +511,79 @@
         });
       }
 
+      function getCurrentQuestion() {
+        if (state.currentQuestion < 0 || state.currentQuestion >= questions.length) {
+          state.currentQuestion = 0;
+        }
+        return questions[state.currentQuestion];
+      }
+
+      function persistCurrentAnswer() {
+        var q = getCurrentQuestion();
+        state.answers[q.id] = answerInputEl.value;
+        saveState();
+      }
+
       function buildShareText() {
-        const lines = [];
-        lines.push(`Nightly Review for ${state.date}`);
+        var lines = [];
+        lines.push("Nightly Review for " + state.date);
         lines.push("");
 
-        questions.forEach((question, index) => {
-          const answer = (state.answers[question.id] || "").trim();
-          lines.push(`${index + 1}. ${question.text}`);
+        for (var i = 0; i < questions.length; i++) {
+          var q = questions[i];
+          var answer = (state.answers[q.id] || "").trim();
+          lines.push((i + 1) + ". " + q.text);
           lines.push(answer || "[No response]");
           lines.push("");
-        });
+        }
 
         return lines.join("\n").trim();
       }
 
       function renderQuestionView() {
-        const question = questions[state.currentQuestion];
-        questionTextEl.textContent = question.text;
-        answerLabelEl.textContent = question.text;
-        answerInputEl.value = state.answers[question.id] || "";
-        progressEl.textContent = `${state.currentQuestion + 1} of ${questions.length}`;
+        var q = getCurrentQuestion();
+
+        questionTextEl.textContent = q.text;
+        answerLabelEl.textContent = q.text;
+        answerInputEl.value = state.answers[q.id] || "";
+        progressEl.textContent = (state.currentQuestion + 1) + " of " + questions.length;
         backButtonEl.disabled = state.currentQuestion === 0;
-        nextButtonEl.textContent =
-          state.currentQuestion === questions.length - 1 ? "Finish" : "Next";
+        nextButtonEl.textContent = state.currentQuestion === questions.length - 1 ? "Finish" : "Next";
+
+        errorBoxEl.classList.add("hidden");
+        errorBoxEl.textContent = "";
 
         questionViewEl.classList.remove("hidden");
         summaryViewEl.classList.add("hidden");
         footerNavEl.classList.remove("hidden");
 
-        requestAnimationFrame(() => {
-          autoResizeTextarea();
-          answerInputEl.focus({ preventScroll: true });
-          answerInputEl.setSelectionRange(
-            answerInputEl.value.length,
-            answerInputEl.value.length
-          );
-        });
+        autoResizeTextarea();
       }
 
       function renderSummaryView() {
         progressEl.textContent = "Complete";
-        summaryDateEl.textContent = formattedDateString(state.date);
+        summaryDateEl.textContent = formatLongDate(state.date);
         summaryItemsEl.innerHTML = "";
 
-        questions.forEach((question, index) => {
-          const wrapper = document.createElement("section");
+        for (var i = 0; i < questions.length; i++) {
+          var q = questions[i];
+          var value = (state.answers[q.id] || "").trim();
+
+          var wrapper = document.createElement("section");
           wrapper.className = "summary-item";
 
-          const q = document.createElement("h2");
-          q.className = "summary-question";
-          q.textContent = `${index + 1}. ${question.text}`;
+          var qEl = document.createElement("h2");
+          qEl.className = "summary-question";
+          qEl.textContent = (i + 1) + ". " + q.text;
 
-          const a = document.createElement("p");
-          const value = (state.answers[question.id] || "").trim();
-          a.className = "summary-answer" + (value ? "" : " empty");
-          a.textContent = value || "[No response]";
+          var aEl = document.createElement("p");
+          aEl.className = "summary-answer" + (value ? "" : " empty");
+          aEl.textContent = value || "[No response]";
 
-          wrapper.appendChild(q);
-          wrapper.appendChild(a);
+          wrapper.appendChild(qEl);
+          wrapper.appendChild(aEl);
           summaryItemsEl.appendChild(wrapper);
-        });
+        }
 
         questionViewEl.classList.add("hidden");
         summaryViewEl.classList.remove("hidden");
@@ -603,100 +598,15 @@
         }
       }
 
-      function persistCurrentAnswer() {
-        const current = questions[state.currentQuestion];
-        state.answers[current.id] = answerInputEl.value;
-        saveState();
+      function showFatalError(message) {
+        questionTextEl.textContent = "Something went wrong.";
+        progressEl.textContent = "";
+        errorBoxEl.textContent = message;
+        errorBoxEl.classList.remove("hidden");
       }
 
-      answerInputEl.addEventListener("input", () => {
-        const current = questions[state.currentQuestion];
-        state.answers[current.id] = answerInputEl.value;
-        saveState();
-        autoResizeTextarea();
-      });
-
-      answerInputEl.addEventListener("blur", () => {
-        persistCurrentAnswer();
-      });
-
-      answerInputEl.addEventListener("keydown", (event) => {
-        if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-          event.preventDefault();
-          nextButtonEl.click();
-        }
-      });
-
-      backButtonEl.addEventListener("click", () => {
-        persistCurrentAnswer();
-        if (state.currentQuestion > 0) {
-          state.currentQuestion -= 1;
-          state.mode = "question";
-          saveState();
-          render();
-        }
-      });
-
-      nextButtonEl.addEventListener("click", () => {
-        persistCurrentAnswer();
-        if (state.currentQuestion < questions.length - 1) {
-          state.currentQuestion += 1;
-          state.mode = "question";
-        } else {
-          state.mode = "summary";
-        }
-        saveState();
-        render();
-      });
-
-      editButtonEl.addEventListener("click", () => {
-        state.mode = "question";
-        state.currentQuestion = 0;
-        saveState();
-        render();
-      });
-
-      copyButtonEl.addEventListener("click", async () => {
-        const text = buildShareText();
-        try {
-          await navigator.clipboard.writeText(text);
-          setStatus("Copied.");
-        } catch (error) {
-          fallbackCopy(text);
-        }
-      });
-
-      shareButtonEl.addEventListener("click", async () => {
-        const text = buildShareText();
-
-        if (navigator.share) {
-          try {
-            await navigator.share({
-              title: "Nightly Review",
-              text
-            });
-            return;
-          } catch (error) {
-            if (error && error.name === "AbortError") return;
-          }
-        }
-
-        if (isLikelyMobile()) {
-          const smsBody = encodeURIComponent(text);
-          window.location.href = `sms:?&body=${smsBody}`;
-          return;
-        }
-
-        try {
-          await navigator.clipboard.writeText(text);
-          setStatus("Copied for sharing.");
-        } catch (error) {
-          fallbackCopy(text);
-        }
-      });
-
       function fallbackCopy(text) {
-        const temp = document.createElement("textarea");
+        var temp = document.createElement("textarea");
         temp.value = text;
         temp.setAttribute("readonly", "");
         temp.style.position = "absolute";
@@ -708,4 +618,96 @@
         setStatus("Copied.");
       }
 
-      function isLikelyMobile()
+      function isLikelyMobile() {
+        return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      }
+
+      answerInputEl.addEventListener("input", function () {
+        var q = getCurrentQuestion();
+        state.answers[q.id] = answerInputEl.value;
+        saveState();
+        autoResizeTextarea();
+      });
+
+      answerInputEl.addEventListener("blur", function () {
+        persistCurrentAnswer();
+      });
+
+      backButtonEl.addEventListener("click", function () {
+        persistCurrentAnswer();
+        if (state.currentQuestion > 0) {
+          state.currentQuestion -= 1;
+          state.mode = "question";
+          saveState();
+          render();
+        }
+      });
+
+      nextButtonEl.addEventListener("click", function () {
+        persistCurrentAnswer();
+        if (state.currentQuestion < questions.length - 1) {
+          state.currentQuestion += 1;
+          state.mode = "question";
+        } else {
+          state.mode = "summary";
+        }
+        saveState();
+        render();
+      });
+
+      editButtonEl.addEventListener("click", function () {
+        state.mode = "question";
+        state.currentQuestion = 0;
+        saveState();
+        render();
+      });
+
+      copyButtonEl.addEventListener("click", function () {
+        var text = buildShareText();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () {
+            setStatus("Copied.");
+          }).catch(function () {
+            fallbackCopy(text);
+          });
+        } else {
+          fallbackCopy(text);
+        }
+      });
+
+      shareButtonEl.addEventListener("click", function () {
+        var text = buildShareText();
+
+        if (navigator.share) {
+          navigator.share({
+            title: "Nightly Review",
+            text: text
+          }).catch(function () {});
+          return;
+        }
+
+        if (isLikelyMobile()) {
+          window.location.href = "sms:?&body=" + encodeURIComponent(text);
+          return;
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () {
+            setStatus("Copied for sharing.");
+          }).catch(function () {
+            fallbackCopy(text);
+          });
+        } else {
+          fallbackCopy(text);
+        }
+      });
+
+      try {
+        render();
+      } catch (e) {
+        showFatalError("The page loaded, but the review questions could not be rendered. Try refreshing once. If it keeps happening, replace the file with the latest version.");
+      }
+    })();
+  </script>
+</body>
+</html>
