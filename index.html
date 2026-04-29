@@ -456,6 +456,21 @@
         </div>
       </div>
 
+      <div class="view hidden" id="gratitudeView">
+        <div class="question-wrap">
+          <h1 class="question">What am I grateful for tonight?</h1>
+          <label class="answer-label" for="gratitudeInput">What am I grateful for tonight?</label>
+          <textarea
+            id="gratitudeInput"
+            class="textarea"
+            placeholder="Write your gratitude here…"
+            autocomplete="off"
+            autocapitalize="sentences"
+            spellcheck="true"
+          ></textarea>
+        </div>
+      </div>
+
       <footer class="footer" id="footerNav">
         <div class="nav">
           <button id="backButton" class="button secondary" type="button">Back</button>
@@ -506,6 +521,7 @@
 
       var questionViewEl = document.getElementById("questionView");
       var summaryViewEl = document.getElementById("summaryView");
+      var gratitudeViewEl = document.getElementById("gratitudeView");
       var summaryItemsEl = document.getElementById("summaryItems");
       var summaryDateEl = document.getElementById("summaryDate");
       var footerNavEl = document.getElementById("footerNav");
@@ -522,6 +538,7 @@
       var confirmResetButtonEl = document.getElementById("confirmResetButton");
 
       var lastFocusedEl = null;
+      var gratitudeInputEl = document.getElementById("gratitudeInput");
       var state = loadState();
 
       function getTodayLocalISO() {
@@ -545,7 +562,8 @@
             q6: "",
             q7: "",
             q8: ""
-          }
+          },
+          gratitude: ""
         };
       }
 
@@ -559,7 +577,7 @@
           return {
             date: parsed.date || getTodayLocalISO(),
             currentQuestion: typeof parsed.currentQuestion === "number" ? parsed.currentQuestion : 0,
-            mode: parsed.mode === "summary" ? "summary" : "question",
+            mode: parsed.mode === "summary" || parsed.mode === "gratitude" ? parsed.mode : "question",
             lastSavedAt: parsed.lastSavedAt || new Date().toISOString(),
             answers: {
               q1: parsed.answers && typeof parsed.answers.q1 === "string" ? parsed.answers.q1 : "",
@@ -570,7 +588,8 @@
               q6: parsed.answers && typeof parsed.answers.q6 === "string" ? parsed.answers.q6 : "",
               q7: parsed.answers && typeof parsed.answers.q7 === "string" ? parsed.answers.q7 : "",
               q8: parsed.answers && typeof parsed.answers.q8 === "string" ? parsed.answers.q8 : ""
-            }
+            },
+            gratitude: typeof parsed.gratitude === "string" ? parsed.gratitude : ""
           };
         } catch (e) {
           return createInitialState();
@@ -636,6 +655,10 @@
           lines.push("");
         }
 
+        lines.push("Gratitude");
+        lines.push((state.gratitude || "").trim() || "[No response]");
+        lines.push("");
+
         return lines.join("\n").trim();
       }
 
@@ -654,9 +677,32 @@
 
         questionViewEl.classList.remove("hidden");
         summaryViewEl.classList.add("hidden");
+        gratitudeViewEl.classList.add("hidden");
         footerNavEl.classList.remove("hidden");
 
         autoResizeTextarea();
+      }
+
+      function renderGratitudeView() {
+        progressEl.textContent = "Almost done";
+        gratitudeInputEl.value = state.gratitude || "";
+
+        questionViewEl.classList.add("hidden");
+        summaryViewEl.classList.add("hidden");
+        gratitudeViewEl.classList.remove("hidden");
+        footerNavEl.classList.remove("hidden");
+
+        backButtonEl.disabled = false;
+        nextButtonEl.textContent = "Finish";
+
+        autoResizeTextareaElement(gratitudeInputEl);
+      }
+
+      function autoResizeTextareaElement(textareaEl) {
+        textareaEl.style.height = "auto";
+        var nextHeight = textareaEl.scrollHeight;
+        var maxHeight = Math.floor(window.innerHeight * 0.45);
+        textareaEl.style.height = Math.min(nextHeight, maxHeight) + "px";
       }
 
       function renderSummaryView() {
@@ -684,7 +730,24 @@
           summaryItemsEl.appendChild(wrapper);
         }
 
+        var gratitudeWrapper = document.createElement("section");
+        gratitudeWrapper.className = "summary-item";
+
+        var gratitudeQuestionEl = document.createElement("h2");
+        gratitudeQuestionEl.className = "summary-question";
+        gratitudeQuestionEl.textContent = "Gratitude";
+
+        var gratitudeAnswer = (state.gratitude || "").trim();
+        var gratitudeAnswerEl = document.createElement("p");
+        gratitudeAnswerEl.className = "summary-answer" + (gratitudeAnswer ? "" : " empty");
+        gratitudeAnswerEl.textContent = gratitudeAnswer || "[No response]";
+
+        gratitudeWrapper.appendChild(gratitudeQuestionEl);
+        gratitudeWrapper.appendChild(gratitudeAnswerEl);
+        summaryItemsEl.appendChild(gratitudeWrapper);
+
         questionViewEl.classList.add("hidden");
+        gratitudeViewEl.classList.add("hidden");
         summaryViewEl.classList.remove("hidden");
         footerNavEl.classList.add("hidden");
       }
@@ -692,9 +755,16 @@
       function render() {
         if (state.mode === "summary") {
           renderSummaryView();
+        } else if (state.mode === "gratitude") {
+          renderGratitudeView();
         } else {
           renderQuestionView();
         }
+      }
+
+      function persistGratitude() {
+        state.gratitude = gratitudeInputEl.value;
+        saveState();
       }
 
       function showFatalError(message) {
@@ -752,6 +822,16 @@
         autoResizeTextarea();
       });
 
+      gratitudeInputEl.addEventListener("input", function () {
+        state.gratitude = gratitudeInputEl.value;
+        saveState();
+        autoResizeTextareaElement(gratitudeInputEl);
+      });
+
+      gratitudeInputEl.addEventListener("blur", function () {
+        persistGratitude();
+      });
+
       answerInputEl.addEventListener("blur", function () {
         persistCurrentAnswer();
       });
@@ -764,6 +844,16 @@
       });
 
       backButtonEl.addEventListener("click", function () {
+        if (state.mode === "gratitude") {
+          persistGratitude();
+          state.mode = "question";
+          state.currentQuestion = questions.length - 1;
+          saveState();
+          render();
+          answerInputEl.focus();
+          return;
+        }
+
         persistCurrentAnswer();
         if (state.currentQuestion > 0) {
           state.currentQuestion -= 1;
@@ -774,12 +864,20 @@
       });
 
       nextButtonEl.addEventListener("click", function () {
+        if (state.mode === "gratitude") {
+          persistGratitude();
+          state.mode = "summary";
+          saveState();
+          render();
+          return;
+        }
+
         persistCurrentAnswer();
         if (state.currentQuestion < questions.length - 1) {
           state.currentQuestion += 1;
           state.mode = "question";
         } else {
-          state.mode = "summary";
+          state.mode = "gratitude";
         }
         saveState();
         render();
