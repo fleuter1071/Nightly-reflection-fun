@@ -713,7 +713,7 @@
         answerInputEl.value = state.answers[q.id] || "";
         progressEl.textContent = (state.currentQuestion + 1) + " of " + questions.length;
         backButtonEl.disabled = false;
-        nextButtonEl.textContent = state.currentQuestion === questions.length - 1 ? "Finish" : "Next";
+        nextButtonEl.textContent = "Next";
 
         errorBoxEl.classList.add("hidden");
         errorBoxEl.textContent = "";
